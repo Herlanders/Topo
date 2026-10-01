@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Topo Fácil</title>
+<style>
+:root{--bg:#f4f6f7;--card:#fff;--tx:#14262b;--mu:#5b6d72;--ac:#0b7285;--ln:#d3dcdf;--er:#c92a2a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10191c;--card:#1a272b;--tx:#e6eef0;--mu:#93a6ab;--ac:#3bc0d8;--ln:#2e4247}}
+:root[data-theme="dark"]{--bg:#10191c;--card:#1a272b;--tx:#e6eef0;--mu:#93a6ab;--ac:#3bc0d8;--ln:#2e4247}
+*{box-sizing:border-box}body{margin:auto;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;max-width:720px;padding:12px}
+h1{font-size:22px;margin:4px 0 8px}h2{font-size:17px;margin:0 0 8px}
+nav{display:flex;gap:4px;margin:8px 0 12px}nav button{flex:1;padding:9px 2px;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:8px;font:inherit;font-size:14px;font-weight:500}
+nav button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.c{background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:12px;margin-bottom:12px}
+button.b{padding:12px 14px;border:0;border-radius:8px;background:var(--ac);color:#fff;font:inherit;font-weight:500;width:100%;margin:4px 0}
+button.s{background:transparent;color:var(--ac);border:1px solid var(--ac)}
+input,textarea,select{width:100%;padding:10px;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+.r{display:grid;grid-template-columns:1fr 1fr;gap:6px}.r4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px 3px;border-bottom:1px solid var(--ln);text-align:right}th:first-child,td:first-child{text-align:left}
+.x{color:var(--er);border:0;background:none;font-size:18px}
+.k{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--ln)}.k b{font-weight:500;text-align:right}
+.m{color:var(--mu);font-size:13px}.sec{display:none}.sec.on{display:block}
+#cq svg{width:100%;height:auto;display:block;border-radius:8px}
+</style></head><body>
+<h1>Topo Fácil</h1>
+<div class="r" style="grid-template-columns:1fr auto auto auto"><select id="js"></select><button class="b s" id="jn" style="width:auto">Novo</button><button class="b s" id="jr" style="width:auto">Nome</button><button class="b s" id="jd" style="width:auto">Apagar</button></div>
+<nav><button id="n0" class="on">Pontos</button><button id="n1">Poligonal</button><button id="n2">Croquis</button><button id="n3">Resultados</button></nav>
+
+<div class="sec on" id="s0">
+<div class="c"><h2>Gravar ponto com GPS (média)</h2>
+<div class="r"><input id="pn" placeholder="Nome (opcional)"><select id="gs"><option value="30">Medir 30 s</option><option value="60" selected>Medir 60 s</option><option value="120">Medir 120 s</option></select></div>
+<button class="b" id="gps">Gravar ponto aqui</button>
+<div class="m" id="gm">Fica parado durante a medição. Dá UTM (WGS84). Precisão típica de 2 a 5 m.</div></div>
+<div class="c"><h2>Adicionar ponto</h2>
+<div class="r4"><input id="an" placeholder="Nome"><input id="ax" placeholder="E (X)" inputmode="decimal"><input id="ay" placeholder="N (Y)" inputmode="decimal"><input id="az" placeholder="Cota Z" inputmode="decimal"></div>
+<button class="b s" id="add">Adicionar</button>
+<div class="m" style="margin-top:8px">Ou escreve latitude e longitude (por exemplo, copiadas do Google Maps):</div>
+<div class="r" style="grid-template-columns:2fr 1fr"><input id="ll" placeholder="-14.9170, 13.4920"><input id="ln" placeholder="Nome"></div>
+<button class="b s" id="lladd">Converter para UTM e adicionar</button>
+<textarea id="tx" rows="3" placeholder="Ou cola: nome,E,N,Z (um ponto por linha)" style="margin-top:6px"></textarea>
+<input type="file" id="fl" accept=".csv,.txt" style="margin-top:6px">
+<button class="b s" id="imp">Carregar pontos colados</button></div>
+<div class="c"><h2>Pontos (<span id="np">0</span>)</h2><div style="overflow-x:auto"><table><thead><tr><th>Nome</th><th>E</th><th>N</th><th>Z</th><th>±m</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
+<button class="b s" id="clr">Apagar pontos deste trabalho</button></div>
+</div>
+
+<div class="sec" id="s1">
+<div class="c"><h2>Poligonal com trena e rumos</h2>
+<div class="m">Parte de um ponto, mede cada lado com trena ou medidor laser e o rumo (azimute, 0 a 360°) com a bússola.</div>
+<div class="r3" style="margin-top:6px"><input id="tE" placeholder="E inicial" inputmode="decimal" value="1000"><input id="tN" placeholder="N inicial" inputmode="decimal" value="1000"><input id="tD" placeholder="Declinação °" inputmode="decimal" value="0"></div>
+<div class="r" style="margin-top:6px"><input id="tA" placeholder="Rumo (°)" inputmode="decimal"><input id="tL" placeholder="Distância (m)" inputmode="decimal"></div>
+<button class="b s" id="tadd">Adicionar lado</button>
+<label class="m"><input type="checkbox" id="tc" checked style="width:auto"> Poligonal fechada (o último lado volta ao ponto inicial)</label></div>
+<div class="c"><h2>Lados</h2><div id="tl" class="m">Sem lados.</div><div id="tr"></div>
+<button class="b" id="tuse">Usar como pontos do trabalho</button>
+<button class="b s" id="tclr">Limpar lados</button></div>
+</div>
+
+<div class="sec" id="s2"><div class="c"><div id="cq"></div>
+<div class="m">Croquis com coordenadas, medidas dos lados, norte e escala. Os pontos são ligados pela ordem da lista.</div></div></div>
+
+<div class="sec" id="s3">
+<div class="c"><h2>Dados do relatório</h2><input id="jc" placeholder="Cliente / local do trabalho"><input id="tn" placeholder="Nome do topógrafo" style="margin-top:6px"></div>
+<div class="c"><h2>Área e perímetro</h2><div id="res"></div></div>
+<div class="c"><h2>Volumes de terraplanagem</h2><input id="ref" placeholder="Cota de projecto (m)" inputmode="decimal"><div id="vol" class="m" style="margin-top:8px">Indica a cota de projecto.</div></div>
+<div class="c"><h2>Exportar</h2><button class="b" id="erp">Guardar relatório (imprimir ou PDF)</button><button class="b s" id="ecs">Guardar pontos em CSV</button>
+<div class="m">Abre o relatório e usa Imprimir, Guardar como PDF.</div></div>
+</div>
+
+<script>
+var $=function(i){return document.getElementById(i)};
+var D=null,T={l:[]};
+try{D=JSON.parse(localStorage.getItem("tf2")||"null");if(!D){var o=JSON.parse(localStorage.getItem("tp")||"[]");D={cur:0,jobs:[{n:"Trabalho 1",p:o.map(function(q){return{n:q.n,x:q.x,y:q.y,z:q.z}})}],tn:""}}}catch(e){}
+if(!D||!D.jobs||!D.jobs.length)D={cur:0,jobs:[{n:"Trabalho 1",p:[]}],tn:""};
+function J(){return D.jobs[D.cur]}
+function sv(){try{localStorage.setItem("tf2",JSON.stringify(D))}catch(e){}}
+function f(n,d){return Number(n).toLocaleString("pt-PT",{minimumFractionDigits:d,maximumFractionDigits:d})}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function num(v){return parseFloat(String(v).replace(",","."))}
+function show(i){for(var k=0;k<4;k++){$("s"+k).className="sec"+(k==i?" on":"");$("n"+k).className=k==i?"on":""}if(i==2)croqUI();if(i==3)calc()}
+for(var q=0;q<4;q++)(function(q){$("n"+q).onclick=function(){show(q)}})(q);
+function jobs(){$("js").innerHTML=D.jobs.map(function(j,i){return'<option value="'+i+'"'+(i==D.cur?" selected":"")+">"+esc(j.n)+" ("+j.p.length+")</option>"}).join("");$("jc").value=J().c||"";$("tn").value=D.tn||""}
+$("js").onchange=function(){D.cur=+$("js").value;sv();all()};
+$("jn").onclick=function(){var n=prompt("Nome do novo trabalho:","Trabalho "+(D.jobs.length+1));if(!n)return;D.jobs.push({n:n,p:[]});D.cur=D.jobs.length-1;sv();all()};
+$("jr").onclick=function(){var n=prompt("Novo nome:",J().n);if(!n)return;J().n=n;sv();all()};
+$("jd").onclick=function(){if(!confirm("Apagar o trabalho "+J().n+"?"))return;D.jobs.splice(D.cur,1);if(!D.jobs.length)D.jobs.push({n:"Trabalho 1",p:[]});D.cur=0;sv();all()};
+$("jc").oninput=function(){J().c=$("jc").value;sv()};$("tn").oninput=function(){D.tn=$("tn").value;sv()};
+function all(){jobs();list();croqUI();calc()}
+function list(){var p=J().p;$("np").textContent=p.length;$("tb").innerHTML=p.map(function(a,i){return"<tr><td>"+esc(a.n)+"</td><td>"+f(a.x,2)+"</td><td>"+f(a.y,2)+"</td><td>"+f(a.z,2)+"</td><td>"+(a.a?f(a.a,1):"")+'</td><td><button class="x" onclick="del('+i+')" aria-label="Apagar">×</button></td></tr>'}).join("")}
+function del(i){J().p.splice(i,1);sv();jobs();list()}
+$("clr").onclick=function(){if(confirm("Apagar todos os pontos deste trabalho?")){J().p=[];J().fc="";sv();all()}};
+$("add").onclick=function(){var x=num($("ax").value),y=num($("ay").value),z=num($("az").value);if(isNaN(x)||isNaN(y)){alert("Preenche E (X) e N (Y) com números.");return}
+J().p.push({n:$("an").value||"P"+(J().p.length+1),x:x,y:y,z:isNaN(z)?0:z});["an","ax","ay","az"].forEach(function(i){$(i).value=""});sv();jobs();list()};
+$("lladd").onclick=function(){var t=$("ll").value.trim().split(/[;\s]+|,\s+/).filter(Boolean),la=num(t[0]),lo=num(t[1]);
+if(t.length<2||isNaN(la)||isNaN(lo)||Math.abs(la)>90||Math.abs(lo)>180){alert("Escreve a latitude e a longitude, por exemplo: -14.9170, 13.4920 (sul e oeste são negativos).");return}
+var u=utm(la,lo);J().p.push({n:$("ln").value||"P"+(J().p.length+1),x:u.x,y:u.y,z:0,a:5});J().sys="UTM WGS84 zona "+u.z+(la<0?"S":"N");$("ll").value="";$("ln").value="";sv();jobs();list()};
+$("imp").onclick=function(){var c=0;$("tx").value.split(/\r?\n/).forEach(function(L){var a=L.trim().split(/[,;\t]+|\s+/).filter(Boolean),n,o;if(a.length<3)return;
+if(a.length>=4){n=a[0];o=1}else if(isNaN(num(a[0]))){n=a[0];o=1}else{n="P"+(J().p.length+1);o=0}
+var x=num(a[o]),y=num(a[o+1]),z=a[o+2]?num(a[o+2]):0;if(isNaN(x)||isNaN(y))return;J().p.push({n:n,x:x,y:y,z:isNaN(z)?0:z});c++});$("tx").value="";sv();jobs();list();alert(c+" pontos carregados.")};
+$("fl").onchange=function(e){var r=new FileReader();r.onload=function(){$("tx").value=r.result};r.readAsText(e.target.files[0])};
+function utm(lat,lon){var a=6378137,fl=1/298.257223563,k0=.9996,e2=fl*(2-fl),ep=e2/(1-e2),z=Math.floor((lon+180)/6)+1,l0=((z-1)*6-180+3)*Math.PI/180,p=lat*Math.PI/180,l=lon*Math.PI/180;
+var N=a/Math.sqrt(1-e2*Math.pow(Math.sin(p),2)),T=Math.pow(Math.tan(p),2),C=ep*Math.pow(Math.cos(p),2),A=Math.cos(p)*(l-l0);
+var M=a*((1-e2/4-3*e2*e2/64-5*Math.pow(e2,3)/256)*p-(3*e2/8+3*e2*e2/32+45*Math.pow(e2,3)/1024)*Math.sin(2*p)+(15*e2*e2/256+45*Math.pow(e2,3)/1024)*Math.sin(4*p)-35*Math.pow(e2,3)/3072*Math.sin(6*p));
+var x=k0*N*(A+(1-T+C)*Math.pow(A,3)/6+(5-18*T+T*T+72*C-58*ep)*Math.pow(A,5)/120)+5e5;
+var y=k0*(M+N*Math.tan(p)*(A*A/2+(5-T+9*C+4*C*C)*Math.pow(A,4)/24+(61-58*T+T*T+600*C-330*ep)*Math.pow(A,6)/720));if(lat<0)y+=1e7;return{x:x,y:y,z:z}}
+var busy=false;
+$("gps").onclick=function(){if(busy)return;if(!navigator.geolocation){$("gm").textContent="Este aparelho não tem GPS no navegador.";return}
+var secs=+$("gs").value,arr=[],t0=Date.now(),btn=$("gps");busy=true;btn.disabled=true;
+var id=navigator.geolocation.watchPosition(function(g){arr.push(g.coords)},function(){fim(true)},{enableHighAccuracy:true,maximumAge:0});
+var iv=setInterval(function(){var s=Math.round((Date.now()-t0)/1000);$("gm").textContent="A medir... "+s+" de "+secs+" s, "+arr.length+" leituras. Não te mexas.";btn.textContent="A medir "+s+" s";if(s>=secs)fim(false)},500);
+function fim(err){if(!busy)return;busy=false;clearInterval(iv);navigator.geolocation.clearWatch(id);btn.disabled=false;btn.textContent="Gravar ponto aqui";
+if(!arr.length){$("gm").textContent=err?"Sem permissão ou sem sinal. Activa a localização e abre a página no navegador do telemóvel.":"Sem leituras. Vai para céu aberto e tenta de novo.";return}
+var mn=Math.min.apply(0,arr.map(function(c){return c.accuracy})),u=arr.filter(function(c){return c.accuracy<=mn*1.5});
+var la=0,lo=0,al=0,ac=0;u.forEach(function(c){la+=c.latitude;lo+=c.longitude;al+=c.altitude||0;ac+=c.accuracy});var n=u.length;
+var ut=utm(la/n,lo/n);J().p.push({n:$("pn").value||"P"+(J().p.length+1),x:ut.x,y:ut.y,z:al/n,a:ac/n});J().sys="UTM WGS84 zona "+ut.z+(la<0?"S":"N");$("pn").value="";sv();jobs();list();
+$("gm").textContent="Gravado com "+n+" leituras. Precisão estimada ±"+f(ac/n,1)+" m. A cota do GPS é menos exacta que E e N."}};
+function tcalc(){var e=num($("tE").value),n=num($("tN").value),d=(num($("tD").value)||0)*Math.PI/180,cl=$("tc").checked,L=T.l;if(isNaN(e)||isNaN(n))return null;
+var pts=[{x:e,y:n}],cx=e,cy=n,tot=0;L.forEach(function(s){var a=s.a*Math.PI/180+d;cx+=s.d*Math.sin(a);cy+=s.d*Math.cos(a);tot+=s.d;pts.push({x:cx,y:cy,c:tot})});
+var ex=0,ey=0,err=0;if(cl&&L.length>2){ex=cx-e;ey=cy-n;err=Math.hypot(ex,ey);pts=pts.map(function(p,i){if(i==0)return p;return{x:p.x-ex*p.c/tot,y:p.y-ey*p.c/tot}});pts.pop()}
+return{pts:pts,err:err,tot:tot,cl:cl&&L.length>2}}
+function tui(){var L=T.l;$("tl").innerHTML=L.length?"<table><tbody>"+L.map(function(s,i){return"<tr><td>Lado "+(i+1)+"</td><td>"+f(s.a,1)+"°</td><td>"+f(s.d,2)+' m</td><td><button class="x" onclick="tdel('+i+')" aria-label="Apagar">×</button></td></tr>'}).join("")+"</tbody></table>":"Sem lados.";
+var r=tcalc(),h="";if(r&&r.cl){var ra=r.err>0?r.tot/r.err:Infinity;h='<div class="k"><span>Erro de fecho</span><b>'+f(r.err,3)+' m</b></div><div class="k"><span>Precisão relativa</span><b>'+(isFinite(ra)?"1 : "+f(ra,0):"perfeita")+"</b></div><div class=\"m\">"+(ra>=2000?"Bom. Pode usar.":ra>=1000?"Aceitável para trabalhos pequenos.":ra>=500?"Fraco. Repete as medições mais duvidosas.":"Mau. Há um erro de medição ou de rumo. Repete.")+" Valores de referência gerais.</div>"}else if(L.length)h='<div class="m">Fecha a poligonal (3 lados ou mais) para ver o erro de fecho.</div>';$("tr").innerHTML=h}
+function tdel(i){T.l.splice(i,1);tui()}
+$("tadd").onclick=function(){var a=num($("tA").value),d=num($("tL").value);if(isNaN(a)||isNaN(d)||d<=0){alert("Preenche o rumo e a distância com números.");return}T.l.push({a:a,d:d});$("tA").value="";$("tL").value="";tui()};
+$("tc").onchange=tui;$("tE").oninput=tui;$("tN").oninput=tui;$("tD").oninput=tui;
+$("tclr").onclick=function(){T.l=[];tui()};
+$("tuse").onclick=function(){var r=tcalc();if(!r||T.l.length<2){alert("Adiciona pelo menos 2 lados.");return}
+var a=r.cl?r.err:null;r.pts.forEach(function(p,i){J().p.push({n:"T"+(i+1),x:p.x,y:p.y,z:0,a:a})});
+J().fc=r.cl?"Poligonal: erro de fecho "+f(r.err,3)+" m, precisão relativa 1:"+(r.err>0?f(r.tot/r.err,0):"∞")+" (compensada)":"Poligonal aberta (sem verificação de fecho)";J().sys="Coordenadas locais (poligonal)";
+sv();jobs();list();alert("Pontos adicionados ao trabalho.");show(0)};
+function bb(){var p=J().p,xs=p.map(function(a){return a.x}),ys=p.map(function(a){return a.y});return{x0:Math.min.apply(0,xs),x1:Math.max.apply(0,xs),y0:Math.min.apply(0,ys),y1:Math.max.apply(0,ys)}}
+function area(){var P=J().p,s=0,l=0,n=P.length;for(var i=0;i<n;i++){var a=P[i],b=P[(i+1)%n];s+=a.x*b.y-b.x*a.y;l+=Math.hypot(b.x-a.x,b.y-a.y)}return{a:Math.abs(s)/2,p:l}}
+function croq(W,H){var P=J().p;if(!P.length)return"";var b=bb(),m=64,top=70,w=W-2*m,h=H-top-m,dx=b.x1-b.x0,dy=b.y1-b.y0,sc=Math.min(w/(dx||1),h/(dy||1)),ho=(w-dx*sc)/2,vo=(h-dy*sc)/2;
+function X(v){return m+ho+(v-b.x0)*sc}function Y(v){return top+h-vo-(v-b.y0)*sc}
+var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+" "+H+'" font-family="Arial,sans-serif"><rect width="'+W+'" height="'+H+'" fill="#fff" stroke="#999"/>';
+s+='<text x="14" y="24" font-size="15" font-weight="bold" fill="#14262b">Croquis de localização: '+esc(J().n)+'</text><text x="14" y="42" font-size="11" fill="#555">'+esc(J().c||"")+" "+esc(J().sys||"")+"</text>";
+if(P.length>1){s+='<polygon points="'+P.map(function(a){return X(a.x).toFixed(1)+","+Y(a.y).toFixed(1)}).join(" ")+'" fill="rgba(11,114,133,.12)" stroke="#0b7285" stroke-width="2"/>';
+for(var i=0;i<P.length;i++){if(P.length==2&&i==1)break;var a=P[i],c=P[(i+1)%P.length],mx=(X(a.x)+X(c.x))/2,my=(Y(a.y)+Y(c.y))/2;s+='<text x="'+mx.toFixed(1)+'" y="'+my.toFixed(1)+'" font-size="10" fill="#8a4b00" text-anchor="middle" stroke="#fff" stroke-width="3" paint-order="stroke">'+f(Math.hypot(c.x-a.x,c.y-a.y),2)+" m</text>"}}
+P.forEach(function(a){var px=X(a.x),py=Y(a.y),r=px>W/2,ax=r?px-8:px+8;s+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="4" fill="#c92a2a"/><g text-anchor="'+(r?"end":"start")+'" stroke="#fff" stroke-width="3" paint-order="stroke"><text x="'+ax.toFixed(1)+'" y="'+(py-14).toFixed(1)+'" font-size="12" font-weight="bold" fill="#14262b">'+esc(a.n)+'</text><text x="'+ax.toFixed(1)+'" y="'+(py-3).toFixed(1)+'" font-size="9" fill="#333">E '+f(a.x,2)+" N "+f(a.y,2)+"</text></g>"});
+s+='<g transform="translate('+(W-30)+',48)"><polygon points="0,-6 6,16 0,11 -6,16" fill="#14262b"/><text y="30" font-size="12" text-anchor="middle" font-weight="bold" fill="#14262b">N</text></g>';
+var Ls=[1,2,5,10,20,50,100,200,500,1000,2000,5000],ln=Ls[0];Ls.forEach(function(v){if(v*sc<=w/3)ln=v});var bw=ln*sc;
+s+='<g transform="translate(14,'+(H-26)+')"><line x2="'+bw.toFixed(1)+'" stroke="#14262b" stroke-width="3"/><text y="14" font-size="10" fill="#14262b">0</text><text x="'+bw.toFixed(1)+'" y="14" font-size="10" text-anchor="end" fill="#14262b">'+ln+" m</text></g>";
+if(P.length>2){var A=area();s+='<text x="'+(W-14)+'" y="'+(H-12)+'" font-size="12" text-anchor="end" fill="#14262b">Área '+f(A.a,2)+" m² · Perímetro "+f(A.p,2)+" m</text>"}
+return s+"</svg>"}
+function croqUI(){$("cq").innerHTML=croq(380,440)||'<div class="m">Sem pontos neste trabalho.</div>'}
+function calc(){var P=J().p,r=$("res");if(P.length<3){r.innerHTML='<div class="m">Precisas de pelo menos 3 pontos.</div>';$("vol").textContent="Precisas de pelo menos 3 pontos.";return}
+var a=area(),zs=P.map(function(p){return p.z}),mn=Math.min.apply(0,zs),mx=Math.max.apply(0,zs);
+r.innerHTML=[["Área",f(a.a,2)+" m² ("+f(a.a/1e4,4)+" ha)"],["Perímetro",f(a.p,2)+" m"],["Pontos",P.length],["Cota mín. / máx.",f(mn,2)+" / "+f(mx,2)+" m"]].map(function(k){return'<div class="k"><span>'+k[0]+"</span><b>"+k[1]+"</b></div>"}).join("");vol()}
+function inP(x,y){var P=J().p,c=false;for(var i=0,j=P.length-1;i<P.length;j=i++){if((P[i].y>y)!=(P[j].y>y)&&x<(P[j].x-P[i].x)*(y-P[i].y)/(P[j].y-P[i].y)+P[i].x)c=!c}return c}
+function idw(x,y){var P=J().p,n=0,d=0;for(var i=0;i<P.length;i++){var r=Math.pow(P[i].x-x,2)+Math.pow(P[i].y-y,2);if(r<1e-6)return P[i].z;n+=P[i].z/r;d+=1/r}return n/d}
+function vol(){if(J().p.length<3)return;var rf=num($("ref").value);if(isNaN(rf)){$("vol").textContent="Indica a cota de projecto.";return}
+var b=bb(),N=60,dx=(b.x1-b.x0)/N||1,dy=(b.y1-b.y0)/N||1,cut=0,fill=0;for(var i=0;i<N;i++)for(var j=0;j<N;j++){var x=b.x0+(i+.5)*dx,y=b.y0+(j+.5)*dy;if(inP(x,y)){var v=(idw(x,y)-rf)*dx*dy;v>0?cut+=v:fill-=v}}
+$("vol").innerHTML='<div class="k"><span>Corte (escavar)</span><b>'+f(cut,1)+' m³</b></div><div class="k"><span>Aterro (encher)</span><b>'+f(fill,1)+' m³</b></div><div class="k"><span>Saldo</span><b>'+f(cut-fill,1)+" m³</b></div><div class=\"m\">Estimativa por grelha. A cota só é fiável se vier de nível ou de equipamento melhor que o GPS do telemóvel.</div>"}
+$("ref").oninput=vol;
+async function guardar(nome,dados){try{var d=window.claude&&await window.claude.use("downloads");if(!d){var B=new Blob([(nome.slice(-4)==".csv"?"\ufeff":"")+dados],{type:"text/plain;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(B);a.download=nome;document.body.appendChild(a);a.click();a.remove();return}await d.save({filename:nome,data:dados})}catch(e){if(!e||e.code!="declined")alert("Não foi possível guardar.")}}
+function fn(){return J().n.replace(/[^\w\-]+/g,"_")}
+$("ecs").onclick=function(){var P=J().p;if(!P.length){alert("Sem pontos.");return}guardar(fn()+".csv","nome;E;N;Z;precisao_m\n"+P.map(function(p){return[p.n,p.x.toFixed(3),p.y.toFixed(3),p.z.toFixed(2),p.a?p.a.toFixed(1):""].join(";")}).join("\n"))};
+$("erp").onclick=function(){var P=J().p;if(P.length<3){alert("Precisas de pelo menos 3 pontos.");return}var A=area(),mx=Math.max.apply(0,P.map(function(p){return p.a||0})),j=J(),note=[];
+if(mx>0&&!j.fc)note.push("Pontos obtidos com GPS de telemóvel (média de leituras). Precisão estimada até ±"+f(mx,1)+" m. Não adequado para demarcação legal de limites.");
+if(j.fc)note.push(j.fc+".");if(!note.length)note.push("Coordenadas inseridas manualmente.");
+var h='<!DOCTYPE html><html lang="pt"><head><meta charset="utf-8"><title>Relatório '+esc(j.n)+'</title><style>body{font:14px Arial,sans-serif;max-width:760px;margin:20px auto;padding:0 12px;color:#111}h1{font-size:20px;margin:0}table{border-collapse:collapse;width:100%;margin:10px 0}td,th{border:1px solid #999;padding:4px 6px;text-align:right}td:first-child,th:first-child{text-align:left}svg{width:100%;height:auto}.n{font-size:12px;color:#444}@media print{button{display:none}}</style></head><body><button onclick="print()">Imprimir / Guardar PDF</button><h1>Relatório de levantamento topográfico</h1><p>Trabalho: <b>'+esc(j.n)+"</b><br>Cliente / local: "+esc(j.c||"-")+"<br>Data: "+new Date().toLocaleDateString("pt-PT")+"<br>Sistema: "+esc(j.sys||"-")+"<br>Topógrafo: "+esc(D.tn||"-")+"</p><p>Área: <b>"+f(A.a,2)+" m²</b> ("+f(A.a/1e4,4)+" ha) · Perímetro: <b>"+f(A.p,2)+' m</b></p><table><tr><th>Ponto</th><th>E</th><th>N</th><th>Z</th><th>±m</th></tr>'+P.map(function(p){return"<tr><td>"+esc(p.n)+"</td><td>"+f(p.x,2)+"</td><td>"+f(p.y,2)+"</td><td>"+f(p.z,2)+"</td><td>"+(p.a?f(p.a,1):"")+"</td></tr>"}).join("")+"</table>"+croq(700,720)+'<p class="n">'+esc(note.join(" "))+"</p></body></html>";
+guardar(fn()+"_relatorio.html",h)};
+all();tui();
+</script></body></html>
