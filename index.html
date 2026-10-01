@@ -21,7 +21,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px 3px;b
 </style></head><body>
 <h1>Topo Fácil</h1>
 <div class="r" style="grid-template-columns:1fr auto auto auto"><select id="js"></select><button class="b s" id="jn" style="width:auto">Novo</button><button class="b s" id="jr" style="width:auto">Nome</button><button class="b s" id="jd" style="width:auto">Apagar</button></div>
-<nav><button id="n0" class="on">Pontos</button><button id="n1">Poligonal</button><button id="n2">Croquis</button><button id="n3">Resultados</button></nav>
+<nav><button id="n0" class="on">Pontos</button><button id="n1">Medir</button><button id="n2">Croquis</button><button id="n3">Resultados</button></nav>
 
 <div class="sec on" id="s0">
 <div class="c"><h2>Gravar ponto com GPS (média)</h2>
@@ -51,6 +51,13 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px 3px;b
 <div class="c"><h2>Lados</h2><div id="tl" class="m">Sem lados.</div><div id="tr"></div>
 <button class="b" id="tuse">Usar como pontos do trabalho</button>
 <button class="b s" id="tclr">Limpar lados</button></div>
+<div class="c"><h2>Triângulos (só com trena)</h2>
+<div class="m">Mede os lados do terreno e as diagonais a partir do ponto P1. Numera os pontos por ordem, à volta do terreno. Não precisas de bússola.</div>
+<select id="gn" style="margin:6px 0"><option value="3">3 pontos</option><option value="4" selected>4 pontos</option><option value="5">5 pontos</option><option value="6">6 pontos</option><option value="7">7 pontos</option><option value="8">8 pontos</option></select>
+<div id="gf"></div>
+<button class="b" id="gcalc">Calcular</button>
+<div id="gr"></div>
+<button class="b s" id="guse" style="display:none">Usar como pontos do trabalho</button></div>
 </div>
 
 <div class="sec" id="s2"><div class="c"><div id="cq"></div>
@@ -85,7 +92,7 @@ $("jc").oninput=function(){J().c=$("jc").value;sv()};$("tn").oninput=function(){
 function all(){jobs();list();croqUI();calc()}
 function list(){var p=J().p;$("np").textContent=p.length;$("tb").innerHTML=p.map(function(a,i){return"<tr><td>"+esc(a.n)+"</td><td>"+f(a.x,2)+"</td><td>"+f(a.y,2)+"</td><td>"+f(a.z,2)+"</td><td>"+(a.a?f(a.a,1):"")+'</td><td><button class="x" onclick="del('+i+')" aria-label="Apagar">×</button></td></tr>'}).join("")}
 function del(i){J().p.splice(i,1);sv();jobs();list()}
-$("clr").onclick=function(){if(confirm("Apagar todos os pontos deste trabalho?")){J().p=[];J().fc="";sv();all()}};
+$("clr").onclick=function(){if(confirm("Apagar todos os pontos deste trabalho?")){J().p=[];J().fc="";J().noN=false;sv();all()}};
 $("add").onclick=function(){var x=num($("ax").value),y=num($("ay").value),z=num($("az").value);if(isNaN(x)||isNaN(y)){alert("Preenche E (X) e N (Y) com números.");return}
 J().p.push({n:$("an").value||"P"+(J().p.length+1),x:x,y:y,z:isNaN(z)?0:z});["an","ax","ay","az"].forEach(function(i){$(i).value=""});sv();jobs();list()};
 $("lladd").onclick=function(){var t=$("ll").value.trim().split(/[;\s]+|,\s+/).filter(Boolean),la=num(t[0]),lo=num(t[1]);
@@ -123,7 +130,7 @@ $("tc").onchange=tui;$("tE").oninput=tui;$("tN").oninput=tui;$("tD").oninput=tui
 $("tclr").onclick=function(){T.l=[];tui()};
 $("tuse").onclick=function(){var r=tcalc();if(!r||T.l.length<2){alert("Adiciona pelo menos 2 lados.");return}
 var a=r.cl?r.err:null;r.pts.forEach(function(p,i){J().p.push({n:"T"+(i+1),x:p.x,y:p.y,z:0,a:a})});
-J().fc=r.cl?"Poligonal: erro de fecho "+f(r.err,3)+" m, precisão relativa 1:"+(r.err>0?f(r.tot/r.err,0):"∞")+" (compensada)":"Poligonal aberta (sem verificação de fecho)";J().sys="Coordenadas locais (poligonal)";
+J().fc=r.cl?"Poligonal: erro de fecho "+f(r.err,3)+" m, precisão relativa 1:"+(r.err>0?f(r.tot/r.err,0):"∞")+" (compensada)":"Poligonal aberta (sem verificação de fecho)";J().sys="Coordenadas locais (poligonal)";J().noN=false;
 sv();jobs();list();alert("Pontos adicionados ao trabalho.");show(0)};
 function bb(){var p=J().p,xs=p.map(function(a){return a.x}),ys=p.map(function(a){return a.y});return{x0:Math.min.apply(0,xs),x1:Math.max.apply(0,xs),y0:Math.min.apply(0,ys),y1:Math.max.apply(0,ys)}}
 function area(){var P=J().p,s=0,l=0,n=P.length;for(var i=0;i<n;i++){var a=P[i],b=P[(i+1)%n];s+=a.x*b.y-b.x*a.y;l+=Math.hypot(b.x-a.x,b.y-a.y)}return{a:Math.abs(s)/2,p:l}}
@@ -134,7 +141,7 @@ s+='<text x="14" y="24" font-size="15" font-weight="bold" fill="#14262b">Croquis
 if(P.length>1){s+='<polygon points="'+P.map(function(a){return X(a.x).toFixed(1)+","+Y(a.y).toFixed(1)}).join(" ")+'" fill="rgba(11,114,133,.12)" stroke="#0b7285" stroke-width="2"/>';
 for(var i=0;i<P.length;i++){if(P.length==2&&i==1)break;var a=P[i],c=P[(i+1)%P.length],mx=(X(a.x)+X(c.x))/2,my=(Y(a.y)+Y(c.y))/2;s+='<text x="'+mx.toFixed(1)+'" y="'+my.toFixed(1)+'" font-size="10" fill="#8a4b00" text-anchor="middle" stroke="#fff" stroke-width="3" paint-order="stroke">'+f(Math.hypot(c.x-a.x,c.y-a.y),2)+" m</text>"}}
 P.forEach(function(a){var px=X(a.x),py=Y(a.y),r=px>W/2,ax=r?px-8:px+8;s+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="4" fill="#c92a2a"/><g text-anchor="'+(r?"end":"start")+'" stroke="#fff" stroke-width="3" paint-order="stroke"><text x="'+ax.toFixed(1)+'" y="'+(py-14).toFixed(1)+'" font-size="12" font-weight="bold" fill="#14262b">'+esc(a.n)+'</text><text x="'+ax.toFixed(1)+'" y="'+(py-3).toFixed(1)+'" font-size="9" fill="#333">E '+f(a.x,2)+" N "+f(a.y,2)+"</text></g>"});
-s+='<g transform="translate('+(W-30)+',48)"><polygon points="0,-6 6,16 0,11 -6,16" fill="#14262b"/><text y="30" font-size="12" text-anchor="middle" font-weight="bold" fill="#14262b">N</text></g>';
+if(!J().noN)s+='<g transform="translate('+(W-30)+',48)"><polygon points="0,-6 6,16 0,11 -6,16" fill="#14262b"/><text y="30" font-size="12" text-anchor="middle" font-weight="bold" fill="#14262b">N</text></g>';
 var Ls=[1,2,5,10,20,50,100,200,500,1000,2000,5000],ln=Ls[0];Ls.forEach(function(v){if(v*sc<=w/3)ln=v});var bw=ln*sc;
 s+='<g transform="translate(14,'+(H-26)+')"><line x2="'+bw.toFixed(1)+'" stroke="#14262b" stroke-width="3"/><text y="14" font-size="10" fill="#14262b">0</text><text x="'+bw.toFixed(1)+'" y="14" font-size="10" text-anchor="end" fill="#14262b">'+ln+" m</text></g>";
 if(P.length>2){var A=area();s+='<text x="'+(W-14)+'" y="'+(H-12)+'" font-size="12" text-anchor="end" fill="#14262b">Área '+f(A.a,2)+" m² · Perímetro "+f(A.p,2)+" m</text>"}
@@ -157,5 +164,22 @@ if(mx>0&&!j.fc)note.push("Pontos obtidos com GPS de telemóvel (média de leitur
 if(j.fc)note.push(j.fc+".");if(!note.length)note.push("Coordenadas inseridas manualmente.");
 var h='<!DOCTYPE html><html lang="pt"><head><meta charset="utf-8"><title>Relatório '+esc(j.n)+'</title><style>body{font:14px Arial,sans-serif;max-width:760px;margin:20px auto;padding:0 12px;color:#111}h1{font-size:20px;margin:0}table{border-collapse:collapse;width:100%;margin:10px 0}td,th{border:1px solid #999;padding:4px 6px;text-align:right}td:first-child,th:first-child{text-align:left}svg{width:100%;height:auto}.n{font-size:12px;color:#444}@media print{button{display:none}}</style></head><body><button onclick="print()">Imprimir / Guardar PDF</button><h1>Relatório de levantamento topográfico</h1><p>Trabalho: <b>'+esc(j.n)+"</b><br>Cliente / local: "+esc(j.c||"-")+"<br>Data: "+new Date().toLocaleDateString("pt-PT")+"<br>Sistema: "+esc(j.sys||"-")+"<br>Topógrafo: "+esc(D.tn||"-")+"</p><p>Área: <b>"+f(A.a,2)+" m²</b> ("+f(A.a/1e4,4)+" ha) · Perímetro: <b>"+f(A.p,2)+' m</b></p><table><tr><th>Ponto</th><th>E</th><th>N</th><th>Z</th><th>±m</th></tr>'+P.map(function(p){return"<tr><td>"+esc(p.n)+"</td><td>"+f(p.x,2)+"</td><td>"+f(p.y,2)+"</td><td>"+f(p.z,2)+"</td><td>"+(p.a?f(p.a,1):"")+"</td></tr>"}).join("")+"</table>"+croq(700,720)+'<p class="n">'+esc(note.join(" "))+"</p></body></html>";
 guardar(fn()+"_relatorio.html",h)};
-all();tui();
+var G=null;
+function lab(t,id){return'<div class="r" style="margin-bottom:4px"><label class="m" style="align-self:center">'+t+'</label><input id="'+id+'" inputmode="decimal" placeholder="m"></div>'}
+function gform(){var n=+$("gn").value,h="";for(var i=1;i<=n;i++)h+=lab("Lado P"+i+"–P"+(i%n+1),"gs"+i);for(var k=3;k<=n-1;k++)h+=lab("Diagonal P1–P"+k,"gd"+k);$("gf").innerHTML=h;$("gr").innerHTML="";$("guse").style.display="none";G=null}
+function gerr(m){$("gr").innerHTML='<div class="m" style="color:var(--er)">'+m+"</div>";$("guse").style.display="none";G=null}
+function gcalc(){var n=+$("gn").value,s=[],d=[],r=[],k,i;
+for(i=1;i<=n;i++){s[i]=num($("gs"+i).value);if(!(s[i]>0))return gerr("Falta o lado P"+i+"–P"+(i%n+1)+".")}
+for(k=3;k<=n-1;k++){d[k]=num($("gd"+k).value);if(!(d[k]>0))return gerr("Falta a diagonal P1–P"+k+".")}
+r[2]=s[1];for(k=3;k<n;k++)r[k]=d[k];r[n]=s[n];
+var P=[];P[1]={x:0,y:0};P[2]={x:s[1],y:0};
+for(k=3;k<=n;k++){var A=P[1],B=P[k-1],D=Math.hypot(B.x-A.x,B.y-A.y),ux=(B.x-A.x)/D,uy=(B.y-A.y)/D,a=(r[k]*r[k]-s[k-1]*s[k-1]+D*D)/(2*D),h2=r[k]*r[k]-a*a;
+if(h2<-0.01)return gerr("Medidas impossíveis perto de P"+k+". Confere o lado P"+(k-1)+"–P"+k+" e a distância de P1 a P"+k+".");
+var h=h2>0?Math.sqrt(h2):0,sg=1;if(k>=4){var R=P[k-2],cr=ux*(R.y-A.y)-uy*(R.x-A.x);sg=cr>0?-1:1}
+P[k]={x:A.x+a*ux-sg*h*uy,y:A.y+a*uy+sg*h*ux}}
+var pts=[],ar=0,pe=0;for(i=1;i<=n;i++){pts.push({n:"P"+i,x:P[i].x+1000,y:P[i].y+1000,z:0});var q=P[i%n+1];ar+=P[i].x*q.y-q.x*P[i].y;pe+=s[i]}
+G=pts;$("gr").innerHTML='<div class="k"><span>Área</span><b>'+f(Math.abs(ar)/2,2)+' m²</b></div><div class="k"><span>Perímetro</span><b>'+f(pe,2)+' m</b></div><div class="m">Orientação arbitrária: o norte não está definido. Mede cada distância duas vezes e mantém a trena esticada e na horizontal.</div>';$("guse").style.display="block"}
+$("gn").onchange=gform;$("gcalc").onclick=gcalc;
+$("guse").onclick=function(){if(!G)return;G.forEach(function(p){J().p.push(p)});J().fc="Levantamento por triângulos com trena (sem verificação de fecho; orientação arbitrária)";J().sys="Coordenadas locais (triângulos), norte não definido";J().noN=true;sv();jobs();list();show(2)};
+all();tui();gform();
 </script></body></html>
